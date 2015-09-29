@@ -26,7 +26,7 @@ class Astro{
  private:
   static time_t j2k_t;
   static HardwareSerial *Serial;
-  float LAT,LONG;
+  float LAT,LON,TLocal;
   int TZone;
 };
 

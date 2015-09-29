@@ -401,7 +401,7 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	if(stars==0){
 	  stars = 1;
 	  AST->latitude1(star[0]);
-	  setTime(AST->get_LT(star[0].LST));
+	  //setTime(AST->get_LT(star[0].LST));
 	  AST->eq_to_horz(star[0]);
 	  ENCAz->set(star[0].az/M_PI*8192);
 	  reqPending = false;
@@ -414,7 +414,7 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	  star[1].LST=star[0].LST;
 	  AST->eq_to_horz(star[1]);
 	  AST->latitude2(star[0],star[1]);
-	  setTime(AST->get_LT(star[0].LST));
+	  //setTime(AST->get_LT(star[0].LST));
 	  AST->eq_to_horz(star[0]);
 	  ENCAz->set(star[0].az/M_PI*8192);
 	  ENCAlt->set(star[0].alt/M_PI*8192);
