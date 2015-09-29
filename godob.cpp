@@ -111,7 +111,7 @@ void godob::run(void)
 {
   static unsigned long tmin = 0;
   unsigned long t0 = millis();
-  float lst;
+  float lst,gmst;
   starpos_s mount;
   float errf;
   
@@ -132,11 +132,12 @@ void godob::run(void)
     case ds_lst:
       LCD->setCursor(0, 0);
       LCD->print("LST ");
-      lst = AST->get_LST(now());
+      gmst = AST->get_GMST(now());
+      lst = gmst + AST->last_longitude();
       show_hms(lst);
       LCD->setCursor(0, 1);
       LCD->print(" LT ");
-      show_hms( (AST->get_LT(lst)%86400)*M_PI/43200 );
+      show_hms( (AST->get_LT(gmst)%86400)*M_PI/43200 );
       if(BTN->poll()){
 	handle_main_keys(BTN->lastkey());
       }
@@ -162,7 +163,7 @@ void godob::run(void)
       LCD->setCursor(0, 0);
       mount.az = ItoRad(ENCAz->lastpos()*4);
       mount.alt = ItoRad(ENCAlt->lastpos()*4);
-      mount.LST = AST->get_LST(now());
+      mount.GMST = AST->get_GMST(now());
       AST->horz_to_eq(mount);
       LCD->print(" RA  ");
       show_hms(mount.RA);
@@ -179,7 +180,7 @@ void godob::run(void)
 	LCD->print("Designate a star");
       }
       else{
-	star[0].LST=AST->get_LST(now());
+	star[0].GMST=AST->get_GMST(now());
 	AST->eq_to_horz(star[0]);
 	LCD->print("AltErr:");
 	errf = ItoRad(ENCAlt->lastpos()*4) - star[0].alt;
@@ -395,15 +396,17 @@ void godob::handle_main_keys(btnval_e lcd_key)
       }
       else{
 	star[1] = star[0];
+	/* add horizontal coordinates */
 	star[0].az = ItoRad(ENCAz->lastpos()*4);
 	star[0].alt = ItoRad(ENCAlt->lastpos()*4);
-	star[0].LST = AST->get_LST(now());
+	star[0].GMST = AST->get_GMST(now());
 	if(stars==0){
 	  stars = 1;
 	  AST->latitude1(star[0]);
 	  //setTime(AST->get_LT(star[0].LST));
 	  AST->eq_to_horz(star[0]);
 	  ENCAz->set(star[0].az/M_PI*8192);
+	  ENCAlt->set(star[0].alt/M_PI*8192);
 	  reqPending = false;
 	  LCD->clear();
 	  LCD->print("First star set");
@@ -411,8 +414,8 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	}
 	else if(stars>0){
 	  stars = 2;
-	  star[1].LST=star[0].LST;
-	  AST->eq_to_horz(star[1]);
+	  star[1].GMST=star[0].GMST;
+	  AST->eq_to_horz(star[1]); /* update the old star's position */
 	  AST->latitude2(star[0],star[1]);
 	  //setTime(AST->get_LT(star[0].LST));
 	  AST->eq_to_horz(star[0]);
@@ -557,7 +560,7 @@ void godob::handle_serial(void)
 	  connect_time = 0;
 	  mount.az = ItoRad(ENCAz->lastpos()*4);
 	  mount.alt = ItoRad(ENCAlt->lastpos()*4);
-	  mount.LST = AST->get_LST(now());
+	  mount.GMST = AST->get_GMST(now());
 	  AST->horz_to_eq(mount);
 	  print_quad(RadToI(mount.RA));
 	  Serial.print("0000,");

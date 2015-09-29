@@ -24,15 +24,14 @@ Astro::Astro(HardwareSerial *serial)
   /* I'm still cheating here. Should save these in NVM */
   LAT = -25.75 * M_PI / 180.0;
   LON = 28.19 * M_PI / 180.0;
+  TZone = 2;
 }
 
 /* calculate Greenwich mean sidereal time */
-//todo: fix misnamed function 
-float Astro::get_LST(time_t ts) /* the UNO doesn't double */
+float Astro::get_GMST(time_t ts) /* the UNO doesn't double */
 {
   float gmst;
-  TLocal = (ts%86400)*M_PI/43200; /* also sets local time */
-  time_t d = ts - j2k_t;
+  time_t d = ts - j2k_t - (TZone * 3600);
 
   d %= 861641; /* retain more significant bits */
   gmst = 0.77905727325 + d/86400.0 + d/31556925.0;
@@ -41,7 +40,7 @@ float Astro::get_LST(time_t ts) /* the UNO doesn't double */
   return gmst*2*M_PI; /* everything gets converted to radians */
 }
 
-/* Calculate local time from LST */
+/* Calculate local time from GMST */
 time_t Astro::get_LT(float lst)
 {
   float lst0;
@@ -56,8 +55,8 @@ time_t Astro::get_LT(float lst)
   lst0 = 0.77905727325 + d0/86400.0 + d0/31556925.0;
   ip = (int)lst0; /* missing integer part */
   gmst += ip;
-  d = ( gmst - 0.77905727325 ) * 86164.090531; /* inverse LST function */
-  ts = d + j2k_t + n*861641;
+  d = ( gmst - 0.77905727325 ) * 86164.090531; /* inverse GMST function */
+  ts = d + j2k_t + n*861641 + (TZone * 3600);
 
   return ts;
 }
@@ -65,7 +64,7 @@ time_t Astro::get_LT(float lst)
 void Astro::eq_to_horz(starpos_s &sp)
 {
   float h,d,A,a;
-  h = sp.LST - sp.RA;
+  h = sp.GMST - sp.RA + LON;
   d = sp.dec;
   A = atan2(-sin(h),-cos(h)*sin(LAT) + tan(d)*cos(LAT)); /* E from N */
   a = asin(sin(LAT)*sin(d) + cos(LAT)*cos(d)*cos(h));
@@ -83,7 +82,7 @@ void Astro::horz_to_eq(starpos_s &sp)
   a = sp.alt;
   h = atan2(-sin(A),-cos(A)*sin(LAT) + tan(a)*cos(LAT));
   d = asin(sin(LAT)*sin(a) + cos(LAT)*cos(a)*cos(A));
-  ra = sp.LST - h;
+  ra = sp.GMST - h + LON;
 
   if(ra<0)ra+=2*M_PI; /* h is positive */
   if(ra>=2*M_PI)ra-=2*M_PI; /* limit to one rev */
@@ -107,7 +106,7 @@ float Astro::last_longitude(void)
 float Astro::latitude1(starpos_s &s1)
 {
   float h,r,b,ha,hb,h0;
-  float e1, e2, lst, gmst;
+  float e1, e2, lst;
   float latx;
 
   float a = s1.alt;
@@ -122,9 +121,8 @@ float Astro::latitude1(starpos_s &s1)
   float cA = cos(A);
 
 
-  gmst = s1.LST;
   /* h = gst - ra + lon */
-  h0 = gmst - ra + LON; /* calculate h0 using the initial LST (derive from RTC) */
+  h0 = s1.GMST - ra + LON; /* calculate h0 using the initial LST (derive from RTC) */
   /* LON might change but the exact value of h0 is not critical */
   ha = -asin(ca*sA/cd); 
   hb = M_PI - ha; /* h-angle is ambiguous - check both answers */
@@ -147,9 +145,9 @@ float Astro::latitude1(starpos_s &s1)
   
   h = atan2(-sA,-cA*sin(latx)+tan(a)*cos(latx));
   lst = ra + h; /* update LST to the calculated time */
-  if(lst<0)lst+=2*M_PI;
-  LON = lst - gmst;
-  if(LON<0)LON+=2*M_PI;
+  LON = lst - s1.GMST;
+  while(LON<0)LON+=2*M_PI;
+  while(LON>=2*M_PI)LON-=2*M_PI;
 
   LAT = latx;
   Reg[0] = ra;
@@ -163,18 +161,6 @@ float Astro::latitude1(starpos_s &s1)
   return latx;
 }
 
-void Astro::dump(void)
-{
-  Serial->print("ra "); Serial->println(Reg[0]*12.0/M_PI,5);
-  Serial->print("d "); Serial->println(Reg[1]*180/M_PI,5);
-  Serial->print("A "); Serial->println(Reg[2]*180/M_PI,5);
-  Serial->print("lx "); Serial->println(Reg[3]*180/M_PI,5);
-  Serial->print("h0 "); Serial->println(Reg[4]*12/M_PI,5);
-  Serial->print("ha "); Serial->println(Reg[5]*12/M_PI,5);
-  Serial->print("hb "); Serial->println(Reg[6]*12/M_PI,5);
-  Serial->print("h "); Serial->println(Reg[7]*12/M_PI,5);
-}
-
 /* Two-star latitude calculation */
 float Astro::latitude2(starpos_s &s1, starpos_s &s2)
 {
@@ -182,7 +168,7 @@ float Astro::latitude2(starpos_s &s1, starpos_s &s2)
   float sq1,cq1,sq2,cq2,cq;
   float slat;
   float h1;
-  float lst, gmst;
+  float lst;
   float latx;
 
   float d1 = s1.dec;
@@ -194,7 +180,6 @@ float Astro::latitude2(starpos_s &s1, starpos_s &s2)
   float A1 = s1.az;
   float A2 = s2.az;
 
-  gmst = s1->LST;
   cr = sin(d1)*sin(d2) + cos(d1)*cos(d2)*cos(ra2-ra1);
   sr2 = 1-cr*cr; /* sin^2(r) */
   /* prevent divide by zero when
@@ -215,12 +200,26 @@ float Astro::latitude2(starpos_s &s1, starpos_s &s2)
 
   latx = asin(slat);
   h1 = atan2(-sin(A1),-cos(A1)*sin(latx)+tan(a1)*cos(latx));
-  lst = ra + h; /* update LST to the calculated time */
-  if(lst<0)lst+=2*M_PI;
-  LON = lst - gmst;
-  if(LON<0)LON+=2*M_PI;
+  lst = ra1 + h1; /* update LST to the calculated time */
+  LON = lst - s1.GMST;
+  while(LON<0)LON+=2*M_PI;
+  while(LON>=2*M_PI)LON-=2*M_PI;
 
   LAT = latx;
   return latx;
+}
+
+void Astro::dump(void)
+{
+  /*  
+  Serial->print("ra "); Serial->println(Reg[0]*12.0/M_PI,5);
+  Serial->print("d "); Serial->println(Reg[1]*180/M_PI,5);
+  Serial->print("A "); Serial->println(Reg[2]*180/M_PI,5);
+  Serial->print("lx "); Serial->println(Reg[3]*180/M_PI,5);
+  Serial->print("h0 "); Serial->println(Reg[4]*12/M_PI,5);
+  Serial->print("ha "); Serial->println(Reg[5]*12/M_PI,5);
+  Serial->print("hb "); Serial->println(Reg[6]*12/M_PI,5);
+  Serial->print("h "); Serial->println(Reg[7]*12/M_PI,5);
+  */
 }
 
