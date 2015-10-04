@@ -36,7 +36,7 @@ class godob
   static uint8_t pin_d7;
   static uint8_t pin_BL;
 
-  static uint8_t Backlight;
+  static int Backlight;
   uint8_t t_idx;
   long t_adjust;
   bool t_set;
@@ -71,6 +71,7 @@ class godob
   void print_quad(unsigned u);
   unsigned read_quad(void);
   int parse_hex(char c);
-};
+  void LCDBrightness(int d);
+  };
 
 #endif

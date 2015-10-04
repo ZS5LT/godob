@@ -19,7 +19,7 @@ uint8_t godob::pin_d6;
 uint8_t godob::pin_d7;
 uint8_t godob::pin_BL;
 
-uint8_t godob::Backlight=1;
+int godob::Backlight=128;
 
 #define ItoRad(r) (r*M_PI/32768.0)
 #define RadToI(r) (r*32768.0/M_PI)
@@ -50,6 +50,7 @@ void godob::begin(void)
   AST = new Astro(&Serial);
   
   Serial.print("00000000,00000000#"); /* let stellarium know we are here */
+  LCDBrightness(0);
 
   Connected = false;
   stars = 0;
@@ -261,7 +262,7 @@ void godob::show_rad(float rad)
 void godob::show_altaz(void)
 {
   int err = ENCAlt->lasterr();
-  float alt;
+  float alt,az;
   LCD->setCursor(0, 0);
   if(err==7){
     LCD->print("Check Magnet");
@@ -286,7 +287,9 @@ void godob::show_altaz(void)
     LCD->print(err);
   }else{
     LCD->print(" Az: ");
-    show_rad(ItoRad(ENCAz->lastpos()*4));
+    az = ItoRad(ENCAz->lastpos()*4);
+    if(az<0)az+=2*M_PI;
+    show_rad(az);
   }
 }
 
@@ -377,8 +380,10 @@ void godob::handle_main_keys(btnval_e lcd_key)
   switch (lcd_key)
     {
     case btnRIGHT:
+      LCDBrightness(+1);
       break;
     case btnLEFT:
+      LCDBrightness(-1);
       break;
     case btnUP:
       dstat = (dstat_e)((dstat+ds_last-1)%ds_last);
@@ -389,12 +394,7 @@ void godob::handle_main_keys(btnval_e lcd_key)
       LCD->clear();
       break;
     case btnSELECT:
-      if(reqPending == false){
-	Backlight=!Backlight;
-	digitalWrite(10, Backlight);
-	//AST->dump();
-      }
-      else{
+      if(reqPending == true){
 	star[1] = star[0];
 	/* add horizontal coordinates */
 	star[0].az = ItoRad(ENCAz->lastpos()*4);
@@ -610,4 +610,13 @@ void godob::handle_serial(void)
 	  break;
         }
     }
+}
+
+inline void godob::LCDBrightness(int d)
+{
+  if(Backlight<8)Backlight+=d;
+  else Backlight += d*8;
+  if(Backlight<0)Backlight=0;
+  Backlight %=256;
+  analogWrite(pin_BL,Backlight);
 }
