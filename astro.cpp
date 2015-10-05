@@ -91,7 +91,7 @@ void Astro::horz_to_eq(starpos_s &sp)
   sp.dec = d;
 }
 
-float Astro::horz_range(starpos_s &sp1, starpos_s &sp2)
+float Astro::horz_range(starpos_s &s1, starpos_s &s2)
 {
   float a1 = s1.alt;
   float a2 = s2.alt;
@@ -101,7 +101,7 @@ float Astro::horz_range(starpos_s &sp1, starpos_s &sp2)
   return acos(cr);
 }
 
-float Astro::eq_range(starpos_s &sp1, starpos_s &sp2)
+float Astro::eq_range(starpos_s &s1, starpos_s &s2)
 {
   float d1 = s1.dec;
   float d2 = s2.dec;

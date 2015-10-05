@@ -203,16 +203,17 @@ void godob::run(void)
       mount.az = ItoRad(ENCAz->lastpos()*4);
       mount.alt = ItoRad(ENCAlt->lastpos()*4);
       mount.GMST = AST->get_GMST(now());
-      star[0].GMST = start[1].GMST = mount.GMST;
-      //AST->horz_to_eq(mount);
-      AST->eq_to_horz(star[0]);
-      //AST->eq_to_horz(star[1]);
+      star[0].GMST = star[1].GMST = mount.GMST;
+      AST->eq_to_horz(star[1]);
       LCD->setCursor(0, 0);
       LCD->print("Targ r=");
       show_rad(AST->eq_range(star[0], star[1]));
       LCD->setCursor(0, 1);
       LCD->print(" Now r=");
-      show_rad(AST->horz_range(mount, star[0]));
+      show_rad(AST->horz_range(mount, star[1]));
+      if(BTN->poll()){
+	handle_main_keys(BTN->lastkey());
+      }
       break;
       
     default:
@@ -624,9 +625,9 @@ void godob::handle_serial(void)
 
 inline void godob::LCDBrightness(int d)
 {
-  if(Backlight+d*8<8)Backlight+=d;
-  else Backlight += d*8;
-  if(Backlight<0)Backlight=0;
-  Backlight %=256;
+  Backlight += d*8;
+  if(d<0 && Backlight<8)Backlight+=7;
+  if(d>0 && Backlight<16)Backlight-=7;
+  Backlight = Backlight<0?0:Backlight%256;
   analogWrite(pin_BL,Backlight);
 }
