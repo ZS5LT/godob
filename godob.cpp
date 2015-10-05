@@ -199,6 +199,22 @@ void godob::run(void)
 	handle_main_keys(BTN->lastkey());
       }
       break;
+    case ds_range:
+      mount.az = ItoRad(ENCAz->lastpos()*4);
+      mount.alt = ItoRad(ENCAlt->lastpos()*4);
+      mount.GMST = AST->get_GMST(now());
+      star[0].GMST = start[1].GMST = mount.GMST;
+      //AST->horz_to_eq(mount);
+      AST->eq_to_horz(star[0]);
+      //AST->eq_to_horz(star[1]);
+      LCD->setCursor(0, 0);
+      LCD->print("Targ r=");
+      show_rad(AST->eq_range(star[0], star[1]));
+      LCD->setCursor(0, 1);
+      LCD->print(" Now r=");
+      show_rad(AST->horz_range(mount, star[0]));
+      break;
+      
     default:
       dstat = ds_time;
       break;
@@ -403,7 +419,6 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	if(stars==0){
 	  stars = 1;
 	  AST->latitude1(star[0]);
-	  //setTime(AST->get_LT(star[0].LST));
 	  AST->eq_to_horz(star[0]);
 	  ENCAz->set(star[0].az/M_PI*8192);
 	  ENCAlt->set(star[0].alt/M_PI*8192);
@@ -412,12 +427,10 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	  LCD->print("First star set");
 	  delay(1000);
 	}
-	else if(stars>0){
-	  stars = 2;
+	else{
 	  star[1].GMST=star[0].GMST;
 	  AST->eq_to_horz(star[1]); /* update the old star's position */
-	  AST->latitude2(star[0],star[1]);
-	  //setTime(AST->get_LT(star[0].LST));
+	  AST->latitude2(star[0],star[1]); /* do location correction */
 	  AST->eq_to_horz(star[0]);
 	  ENCAz->set(star[0].az/M_PI*8192);
 	  ENCAlt->set(star[0].alt/M_PI*8192);
@@ -582,12 +595,9 @@ void godob::handle_serial(void)
 	  LCD->print("Dec:");
 	  //LCD->print(Decq);
 	  show_dms(ItoRad(Decq));
-	  delay(3000);
-	  if(stars>0){
-	    if(!reqPending){
-	      star[1] = star[0];
-	    }
-	    stars=2;
+	  delay(2000);
+	  if(!reqPending){
+	    star[1] = star[0];
 	  }
 	  star[0].RA = ItoRad(RAq);
 	  star[0].dec = ItoRad(Decq);
@@ -614,7 +624,7 @@ void godob::handle_serial(void)
 
 inline void godob::LCDBrightness(int d)
 {
-  if(Backlight<8)Backlight+=d;
+  if(Backlight+d*8<8)Backlight+=d;
   else Backlight += d*8;
   if(Backlight<0)Backlight=0;
   Backlight %=256;

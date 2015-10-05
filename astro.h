@@ -21,6 +21,8 @@ class Astro{
   float last_longitude(void);
   float latitude1(starpos_s &s1);
   float latitude2(starpos_s &s1, starpos_s &s2);
+  float horz_range(starpos_s &sp1, starpos_s &sp2);
+  float eq_range(starpos_s &sp1, starpos_s &sp2);
   void dump(void);
   
  private:

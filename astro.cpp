@@ -91,6 +91,26 @@ void Astro::horz_to_eq(starpos_s &sp)
   sp.dec = d;
 }
 
+float Astro::horz_range(starpos_s &sp1, starpos_s &sp2)
+{
+  float a1 = s1.alt;
+  float a2 = s2.alt;
+  float A1 = s1.az;
+  float A2 = s2.az;
+  float cr = sin(a1)*sin(a2) + cos(a1)*cos(a2)*cos(A2-A1);
+  return acos(cr);
+}
+
+float Astro::eq_range(starpos_s &sp1, starpos_s &sp2)
+{
+  float d1 = s1.dec;
+  float d2 = s2.dec;
+  float ra1 = s1.RA;
+  float ra2 = s2.RA;
+  float cr = sin(d1)*sin(d2) + cos(d1)*cos(d2)*cos(ra2-ra1);
+  return acos(cr);
+}
+
 float Astro::last_latitude(void)
 {
   return LAT;
@@ -191,7 +211,7 @@ float Astro::latitude2(starpos_s &s1, starpos_s &s2)
   sq1 = cos(a2)*sin(A2-A1); /* SIN rule times sin(r) */
   sq2 = cos(d2)*sin(ra2-ra1);
   cq1 = (sin(a2)-sin(a1)*cr)/cos(a1); /* COS rule times sin(r) */
-  cq2 = (sin(d2)-sin(d1)*cr)/cos(d1); /* d1 NOT on the equator! */
+  cq2 = (sin(d2)-sin(d1)*cr)/cos(d1); /* d1 NOT on the pole! */
 
   /* cos(A) = cos(2pi-A) */
   cq = (cq1*cq2 - sq1*sq2)/sr2; /* cos(A+B) = cosA.cosB - sinA.sinB */

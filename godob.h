@@ -11,7 +11,7 @@
 
 typedef enum{  /* status display modes */
 /* local time, local siderial time, lat/long, alt/az, ra/dec */
-  ds_time=0, ds_lst, ds_loc, ds_horz, ds_eq, ds_targ, ds_last
+  ds_time=0, ds_lst, ds_loc, ds_horz, ds_eq, ds_range, ds_targ, ds_last
 }dstat_e;
 
 class godob
