@@ -48,7 +48,10 @@ int Encoder::readpos(void)
     return errno;
   }
 
-  n = Wire.available();
+  for(i=0;Wire.available();i++){
+    data[i] = Wire.read();
+  }
+
   if(n<6){
     errno = 5;
     return errno;
@@ -56,10 +59,6 @@ int Encoder::readpos(void)
   else if(n>6){
     errno = 1;
     return errno;
-  }
-
-  for(i=0;i<n;i++){
-    data[i] = Wire.read();
   }
 
   if(data[1] != 1){
