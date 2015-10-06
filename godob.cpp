@@ -93,9 +93,10 @@ void godob::begin(void)
   LCD->print("Godob 1.0");
   delay(1000);
   LCD->clear();
+  ENCAlt->reverse(0);
   ENCAlt->reset();
-  ENCAz->reset();
   ENCAz->reverse(1);
+  ENCAz->reset();
 }
 
 void godob::print(char *str)
