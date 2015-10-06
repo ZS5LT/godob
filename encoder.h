@@ -15,7 +15,7 @@ class Encoder
  private:
   int encAddr;
   int errno;
-  unsigned position;
+  unsigned position, rawpos;
   uint8_t data[8];
   unsigned zeropos;
   int enc_reverse;

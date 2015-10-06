@@ -12,6 +12,8 @@
  *  7: Magnet error
 */
 
+#define MAX_ENC_VAL 16383
+
 Encoder::Encoder(uint8_t addr)
 {
   encAddr = addr;
@@ -23,6 +25,8 @@ Encoder::Encoder(uint8_t addr)
 int Encoder::readpos(void)
 {
   int i, r, n;
+  int p;
+
   errno=0;
   Wire.beginTransmission(encAddr);
   /* request data from register 0xfa onwards */
@@ -63,8 +67,14 @@ int Encoder::readpos(void)
     return errno;
   }
 
-  position = (data[4]<<6) + (data[5]&0x3f);
-
+  rawpos = (data[4]<<6) | (data[5]&0x3f);
+  if(enc_reverse){
+    rawpos = MAX_ENC_VAL - rawpos;
+  }
+  
+  p = rawpos - zeropos;
+  if(p<0)p+=MAX_ENC_VAL+1;
+  position = p;
   return 0;
 }
 
@@ -76,7 +86,7 @@ int Encoder::lasterr(void)
 void Encoder::reset(void)
 {
   readpos();
-  zeropos = position;
+  zeropos = rawpos;
 }
 
 void Encoder::reverse(int en)
@@ -86,26 +96,12 @@ void Encoder::reverse(int en)
 
 int Encoder::lastpos(void)
 {
-  int pos;
-  if(!enc_reverse){
-    pos = position-zeropos;
-  }
-  else{
-    pos = zeropos-position;
-  }
-  while(pos<0)pos += 16384;
-  return pos;
+  return position;
 }
 
 void Encoder::set(int pos)
 {
   readpos();
-  if(enc_reverse){
-    zeropos = position + pos;
-    zeropos %= 1<<14;
-  }
-  else{
-    zeropos = position - pos;
-    while(zeropos<0)zeropos+=16384;
-  }
+  zeropos = rawpos - pos;
+  if(zeropos<0)zeropos+=MAX_ENC_VAL+1;
 }
