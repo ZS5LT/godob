@@ -101,7 +101,9 @@ int Encoder::lastpos(void)
 
 void Encoder::set(int pos)
 {
+  int zp;
   readpos();
-  zeropos = rawpos - pos;
-  if(zeropos<0)zeropos+=MAX_ENC_VAL+1;
+  zp = rawpos - pos;
+  if(zp<0)zp+=MAX_ENC_VAL+1;
+  zeropos = zp;
 }
