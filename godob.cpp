@@ -413,7 +413,6 @@ void godob::handle_main_keys(btnval_e lcd_key)
       break;
     case btnSELECT:
       if(reqPending == true){
-	star[1] = star[0];
 	/* add horizontal coordinates */
 	star[0].az = ItoRad(ENCAz->lastpos()*4);
 	star[0].alt = ItoRad(ENCAlt->lastpos()*4);
