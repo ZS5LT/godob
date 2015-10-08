@@ -47,7 +47,7 @@ void godob::begin(void)
   BTN = new Buttons(0);
   ENCAz = new Encoder(0x42);
   ENCAlt = new Encoder(0x40);
-  AST = new Astro(&Serial);
+  AST = new Astro();
   
   Serial.print("00000000,00000000#"); /* let stellarium know we are here */
   LCDBrightness(0);

@@ -5,6 +5,7 @@ class Encoder
 {
  public:
   Encoder(uint8_t addr);
+
   int readpos(void);
   int lasterr(void);
   int lastpos(void);
@@ -19,7 +20,6 @@ class Encoder
   uint8_t data[8];
   unsigned zeropos;
   int enc_reverse;
-
 };
 
 

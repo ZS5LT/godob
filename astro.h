@@ -12,7 +12,6 @@ typedef struct{
 class Astro{
  public:
   Astro(void);
-  Astro(HardwareSerial *serial);
   float get_GMST(time_t ts);
   time_t get_LT(float lst);
   void eq_to_horz(starpos_s &sp);
@@ -23,7 +22,6 @@ class Astro{
   float latitude2(starpos_s &s1, starpos_s &s2);
   float horz_range(starpos_s &sp1, starpos_s &sp2);
   float eq_range(starpos_s &sp1, starpos_s &sp2);
-  void dump(void);
   
  private:
   static time_t j2k_t;

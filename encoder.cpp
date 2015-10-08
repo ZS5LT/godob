@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <Wire.h>
+#include <HardwareSerial.h>
 #include "encoder.h"
 
 /* errors:
@@ -24,8 +26,8 @@ Encoder::Encoder(uint8_t addr)
 
 int Encoder::readpos(void)
 {
-  int i, r, n;
-  int p;
+  int i, n, p;
+  unsigned q;
 
   errno=0;
   Wire.beginTransmission(encAddr);
@@ -66,11 +68,12 @@ int Encoder::readpos(void)
     return errno;
   }
 
-  rawpos = (data[4]<<6) | (data[5]&0x3f);
+  q = (data[4]<<6) | (data[5]&0x3f);
   if(enc_reverse){
-    rawpos = MAX_ENC_VAL - rawpos;
+    q = MAX_ENC_VAL - q;
   }
-  
+
+  rawpos = q;
   p = rawpos - zeropos;
   if(p<0)p+=MAX_ENC_VAL+1;
   position = p;

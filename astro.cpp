@@ -13,14 +13,8 @@ HardwareSerial *Astro::Serial = NULL;
 
 Astro::Astro(void)
 {
-  Astro(NULL);
-}
-
-Astro::Astro(HardwareSerial *serial)
-{
   TimeElements j2k_tm={0, 0, 12, 1, 1, 1, 30}; /* 1 Jan 2000 */
   j2k_t = makeTime(j2k_tm);
-  Serial = serial;
   /* I'm still cheating here. Should save these in NVM */
   LAT = -25.75 * M_PI / 180.0;
   LON = 28.19 * M_PI / 180.0;
@@ -229,17 +223,4 @@ float Astro::latitude2(starpos_s &s1, starpos_s &s2)
   return latx;
 }
 
-void Astro::dump(void)
-{
-  /*  
-  Serial->print("ra "); Serial->println(Reg[0]*12.0/M_PI,5);
-  Serial->print("d "); Serial->println(Reg[1]*180/M_PI,5);
-  Serial->print("A "); Serial->println(Reg[2]*180/M_PI,5);
-  Serial->print("lx "); Serial->println(Reg[3]*180/M_PI,5);
-  Serial->print("h0 "); Serial->println(Reg[4]*12/M_PI,5);
-  Serial->print("ha "); Serial->println(Reg[5]*12/M_PI,5);
-  Serial->print("hb "); Serial->println(Reg[6]*12/M_PI,5);
-  Serial->print("h "); Serial->println(Reg[7]*12/M_PI,5);
-  */
-}
 
