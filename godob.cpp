@@ -19,7 +19,7 @@ uint8_t godob::pin_d6;
 uint8_t godob::pin_d7;
 uint8_t godob::pin_BL;
 
-int godob::Backlight=128;
+int godob::Backlight=8;
 
 #define ItoRad(r) (r*M_PI/32768.0)
 #define RadToI(r) (r*32768.0/M_PI)
@@ -50,7 +50,6 @@ void godob::begin(void)
   AST = new Astro();
   
   Serial.print("00000000,00000000#"); /* let stellarium know we are here */
-  LCDBrightness(0);
 
   Connected = false;
   stars = 0;
@@ -91,6 +90,7 @@ void godob::begin(void)
   }
 
   LCD->print("Godob 1.0");
+  LCDBrightness(0);
   delay(1000);
   LCD->clear();
   ENCAlt->reverse(0);
@@ -111,13 +111,13 @@ void godob::println(char *str)
 
 void godob::run(void)
 {
-  static unsigned long tmin = 0;
+  static unsigned long tmin = 0, tenc=0;
   unsigned long t0 = millis();
   float lst,gmst;
   starpos_s mount;
   float errf;
   
-  if(t0-tmin>200){ /* update LCD every 200ms */
+  if(t0-tmin>=200){ /* update LCD every 200ms */
     tmin = t0;
     if(connect_time>5)Connected=false;
     connect_time++;
@@ -222,10 +222,12 @@ void godob::run(void)
       break;
     }/* switch */
   }/*tmin*/
-  ENCAlt->readpos();
-  ENCAz->readpos();
+  if(t0-tenc>=2){ /* read encoders every 2ms */
+    tenc = 0;
+    ENCAlt->readpos();
+    ENCAz->readpos();
+  }
   handle_serial();
-  delayMicroseconds(100); /* fmax=10 kHz */
 }
 
 void godob::show_hms(double rad)
@@ -337,7 +339,7 @@ void godob::printdate(void)
     // Display abbreviated Day-of-Week in the lower left corner
     LCD->setCursor(0, 1);
     if(!Connected){
-      ch = '.';
+      ch = '_';
     }
     else if(reqPending){
       ch = '+';
