@@ -15,6 +15,7 @@
 */
 
 #define MAX_ENC_VAL 16383
+#define NFilter 1
 
 Encoder::Encoder(uint8_t addr)
 {
@@ -22,6 +23,7 @@ Encoder::Encoder(uint8_t addr)
   errno = 0;
   reset();
   enc_reverse=0;
+  filter = new rfilter(NFilter,MAX_ENC_VAL+1);
 }
 
 int Encoder::readpos(void)
@@ -73,7 +75,8 @@ int Encoder::readpos(void)
     q = MAX_ENC_VAL - q;
   }
 
-  rawpos = q;
+  //rawpos = q;
+  rawpos = filter->inout(q);
   p = rawpos - zeropos;
   if(p<0)p+=MAX_ENC_VAL+1;
   position = p;
@@ -87,7 +90,10 @@ int Encoder::lasterr(void)
 
 void Encoder::reset(void)
 {
-  readpos();
+  int i;
+  for(i=0;i<NFilter;i++){
+    readpos();
+  }
   zeropos = rawpos;
 }
 

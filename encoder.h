@@ -1,6 +1,8 @@
 #ifndef ENCODER_H
 #define ENCODER_h
 
+#include "rfilter.h"
+
 class Encoder
 {
  public:
@@ -20,6 +22,7 @@ class Encoder
   uint8_t data[8];
   unsigned zeropos;
   int enc_reverse;
+  rfilter *filter;
 };
 
 
