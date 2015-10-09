@@ -15,7 +15,7 @@
 */
 
 #define MAX_ENC_VAL 16383
-#define NFilter 1
+#define NFilter 64
 
 Encoder::Encoder(uint8_t addr)
 {

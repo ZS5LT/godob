@@ -21,46 +21,37 @@ rfilter::rfilter(int depth, int range)
   acc = 0;
   wrpos = 0;
   rrange = range;
-  offset = range/2;
 }
 
 int rfilter::inout(int x)
 {
   int s,r,d;
   if(rdepth < 2){
-    acc = x + offset;
+    acc = x;
   }
   else{
-    s = x + offset;
+    s = x;
     r = acc/rdepth;
     d = s - r;
-    if(d > rrange/2)s-=rrange;
-    //if(d <= -(rrange/2))s+=rrange;
+    if(d > rrange/4)s-=rrange;
+    if(d <= -(rrange/4))s+=rrange;
     acc -= rbuffer[wrpos];
     acc += s;
     rbuffer[wrpos++] = s;
     wrpos %= rdepth;
   }
 
-  r = acc/rdepth - offset;
+  if(r<0)rshift(rrange);
+  if(r>rrange/2*3)rshift(-rrange);
 
-  if(inst==0){
-    Serial.print(acc);
-    Serial.print(" ");
-    Serial.print(x);
-    Serial.print(" ");
-    Serial.print(s);
-    Serial.print(" ");
-    Serial.print(d);
-    Serial.print(" ");
-    Serial.println(r);
-  }  
+  if(r>=rrange)r-=rrange;
+
   return r;
 }
 
 inline int rfilter::output(void)
 {
-  return acc/rdepth - offset;
+  return acc/rdepth;
 }
 
 void rfilter::rshift(int d)
@@ -70,5 +61,4 @@ void rfilter::rshift(int d)
     rbuffer[i] += d;
     acc += d;
   }
-  offset = d;
 }

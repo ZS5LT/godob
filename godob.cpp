@@ -117,7 +117,7 @@ void godob::run(void)
   starpos_s mount;
   float errf;
   
-  if(t0-tmin>100){ /* update LCD every 100ms */
+  if(t0-tmin>200){ /* update LCD every 200ms */
     tmin = t0;
     if(connect_time>5)Connected=false;
     connect_time++;
@@ -221,12 +221,11 @@ void godob::run(void)
       dstat = ds_time;
       break;
     }/* switch */
-
-    ENCAlt->readpos();
-    ENCAz->readpos();
-
-  }
+  }/*tmin*/
+  ENCAlt->readpos();
+  ENCAz->readpos();
   handle_serial();
+  delayMicroseconds(100); /* fmax=10 kHz */
 }
 
 void godob::show_hms(double rad)

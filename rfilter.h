@@ -11,7 +11,6 @@ class rfilter{
   int *rbuffer;
   int wrpos;
   int rdepth;
-  int offset;
   int rrange;
   long acc;
   void rshift(int d);
