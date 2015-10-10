@@ -32,7 +32,7 @@ int rfilter::inout(int x)
   int s,d;
   long r;
   if(rdepth < 2){
-    acc = x;
+    acc = x>>obits;
   }
   else{
     s = x;

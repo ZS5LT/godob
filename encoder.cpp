@@ -77,10 +77,9 @@ int Encoder::readpos(void)
     q = MAX_ENC_VAL - q;
   }
 
-  //rawpos = q;
   rawpos = filter->inout(q);
   p = (long)rawpos - zeropos;
-  if(p<0)p+=((MAX_ENC_VAL+1)<<OBITS);
+  if(p<0)p+=((MAX_ENC_VAL+1))<<OBITS;
   position = p;
   return 0;
 }
@@ -111,9 +110,9 @@ int Encoder::lastpos(void)
 
 void Encoder::set(int pos)
 {
-  int zp;
+  long zp;
   readpos();
-  zp = rawpos - pos;
-  if(zp<0)zp+=MAX_ENC_VAL+1;
+  zp = (long)rawpos - pos;
+  if(zp<0)zp+=(MAX_ENC_VAL+1)<<OBITS;
   zeropos = zp;
 }

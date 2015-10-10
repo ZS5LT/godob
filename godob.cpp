@@ -422,8 +422,8 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	  stars = 1;
 	  AST->latitude1(star[0]);
 	  AST->eq_to_horz(star[0]);
-	  ENCAz->set(star[0].az/M_PI*8192);
-	  ENCAlt->set(star[0].alt/M_PI*8192);
+	  ENCAz->set(RadToI(star[0].az));
+	  ENCAlt->set(RadToI(star[0].alt));
 	  reqPending = false;
 	  LCD->clear();
 	  LCD->print("First star set");
@@ -434,8 +434,8 @@ void godob::handle_main_keys(btnval_e lcd_key)
 	  AST->eq_to_horz(star[1]); /* update the old star's position */
 	  AST->latitude2(star[0],star[1]); /* do location correction */
 	  AST->eq_to_horz(star[0]);
-	  ENCAz->set(star[0].az/M_PI*8192);
-	  ENCAlt->set(star[0].alt/M_PI*8192);
+	  ENCAz->set(RadToI(star[0].az));
+	  ENCAlt->set(RadToI(star[0].alt));
 	  reqPending = false;
 	  LCD->clear();
 	  LCD->print("New star set");
