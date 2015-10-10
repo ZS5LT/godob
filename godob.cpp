@@ -117,7 +117,7 @@ void godob::run(void)
   starpos_s mount;
   float errf;
   
-  if(t0-tmin>=200){ /* update LCD every 200ms */
+  if(t0-tmin>200){ /* update LCD every 200ms */
     tmin = t0;
     if(connect_time>5)Connected=false;
     connect_time++;
@@ -163,8 +163,8 @@ void godob::run(void)
       break;
     case ds_eq:
       LCD->setCursor(0, 0);
-      mount.az = ItoRad(ENCAz->lastpos()*4);
-      mount.alt = ItoRad(ENCAlt->lastpos()*4);
+      mount.az = ItoRad(ENCAz->lastpos());
+      mount.alt = ItoRad(ENCAlt->lastpos());
       mount.GMST = AST->get_GMST(now());
       AST->horz_to_eq(mount);
       LCD->print(" RA  ");
@@ -185,13 +185,13 @@ void godob::run(void)
 	star[0].GMST=AST->get_GMST(now());
 	AST->eq_to_horz(star[0]);
 	LCD->print("AltErr:");
-	errf = ItoRad(ENCAlt->lastpos()*4) - star[0].alt;
+	errf = ItoRad(ENCAlt->lastpos()) - star[0].alt;
 	if(errf>M_PI)errf-=2*M_PI;
 	if(errf<-M_PI)errf+=2*M_PI;
 	show_rad(errf);
 	LCD->setCursor(0, 1);
 	LCD->print(" AzErr:");
-	errf = ItoRad(ENCAz->lastpos()*4) - star[0].az;
+	errf = ItoRad(ENCAz->lastpos()) - star[0].az;
 	if(errf>M_PI)errf-=2*M_PI;
 	if(errf<-M_PI)errf+=2*M_PI;
 	show_rad(errf);
@@ -201,8 +201,8 @@ void godob::run(void)
       }
       break;
     case ds_range:
-      mount.az = ItoRad(ENCAz->lastpos()*4);
-      mount.alt = ItoRad(ENCAlt->lastpos()*4);
+      mount.az = ItoRad(ENCAz->lastpos());
+      mount.alt = ItoRad(ENCAlt->lastpos());
       mount.GMST = AST->get_GMST(now());
       star[0].GMST = star[1].GMST = mount.GMST;
       AST->eq_to_horz(star[1]);
@@ -222,7 +222,7 @@ void godob::run(void)
       break;
     }/* switch */
   }/*tmin*/
-  if(t0-tenc>=2){ /* read encoders every 2ms */
+  if(t0-tenc>1){ /* read encoders every ms */
     tenc = 0;
     ENCAlt->readpos();
     ENCAz->readpos();
@@ -291,7 +291,7 @@ void godob::show_altaz(void)
     LCD->print(err);
   }else{
     LCD->print("Alt: ");
-    alt = ItoRad(ENCAlt->lastpos()*4);
+    alt = ItoRad(ENCAlt->lastpos());
     if(alt>M_PI)alt-=2*M_PI;
     show_rad(alt);
   }
@@ -306,7 +306,7 @@ void godob::show_altaz(void)
     LCD->print(err);
   }else{
     LCD->print(" Az: ");
-    az = ItoRad(ENCAz->lastpos()*4);
+    az = ItoRad(ENCAz->lastpos());
     if(az<0)az+=2*M_PI;
     show_rad(az);
   }
@@ -415,8 +415,8 @@ void godob::handle_main_keys(btnval_e lcd_key)
     case btnSELECT:
       if(reqPending == true){
 	/* add horizontal coordinates */
-	star[0].az = ItoRad(ENCAz->lastpos()*4);
-	star[0].alt = ItoRad(ENCAlt->lastpos()*4);
+	star[0].az = ItoRad(ENCAz->lastpos());
+	star[0].alt = ItoRad(ENCAlt->lastpos());
 	star[0].GMST = AST->get_GMST(now());
 	if(stars==0){
 	  stars = 1;
@@ -573,8 +573,8 @@ void godob::handle_serial(void)
 	case 'e':
 	  Connected = true;
 	  connect_time = 0;
-	  mount.az = ItoRad(ENCAz->lastpos()*4);
-	  mount.alt = ItoRad(ENCAlt->lastpos()*4);
+	  mount.az = ItoRad(ENCAz->lastpos());
+	  mount.alt = ItoRad(ENCAlt->lastpos());
 	  mount.GMST = AST->get_GMST(now());
 	  AST->horz_to_eq(mount);
 	  print_quad(RadToI(mount.RA));

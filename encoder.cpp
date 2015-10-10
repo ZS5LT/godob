@@ -14,8 +14,9 @@
  *  7: Magnet error
 */
 
-#define MAX_ENC_VAL 16383
-#define NFilter 64
+#define MAX_ENC_VAL 16383l
+#define NFilter 128
+#define OBITS 2
 
 Encoder::Encoder(uint8_t addr)
 {
@@ -23,13 +24,14 @@ Encoder::Encoder(uint8_t addr)
   errno = 0;
   reset();
   enc_reverse=0;
-  filter = new rfilter(NFilter,MAX_ENC_VAL+1);
+  filter = new rfilter(NFilter,MAX_ENC_VAL+1,OBITS);
 }
 
 int Encoder::readpos(void)
 {
-  int i, n, p;
+  int i, n;
   unsigned q;
+  long p;
 
   errno=0;
   Wire.beginTransmission(encAddr);
@@ -77,8 +79,8 @@ int Encoder::readpos(void)
 
   //rawpos = q;
   rawpos = filter->inout(q);
-  p = rawpos - zeropos;
-  if(p<0)p+=MAX_ENC_VAL+1;
+  p = (long)rawpos - zeropos;
+  if(p<0)p+=((MAX_ENC_VAL+1)<<OBITS);
   position = p;
   return 0;
 }

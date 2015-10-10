@@ -4,7 +4,10 @@
 
 int rfilter::instx = 0;
 
-rfilter::rfilter(int depth, int range)
+/* average over n=depth values, where 0 <= values <= range.
+   Add obits oversampled bits to the output signal
+*/
+rfilter::rfilter(int depth, int range, int obits)
 {
   int i;
   inst = instx++;
@@ -21,11 +24,13 @@ rfilter::rfilter(int depth, int range)
   acc = 0;
   wrpos = 0;
   rrange = range;
+  this->obits = obits;
 }
 
 int rfilter::inout(int x)
 {
-  int s,r,d;
+  int s,d;
+  long r;
   if(rdepth < 2){
     acc = x;
   }
@@ -33,8 +38,8 @@ int rfilter::inout(int x)
     s = x;
     r = acc/rdepth;
     d = s - r;
-    if(d > rrange/4)s-=rrange;
-    if(d <= -(rrange/4))s+=rrange;
+    if(d > rrange/2)s-=rrange;
+    if(d <= -(rrange/2))s+=rrange;
     acc -= rbuffer[wrpos];
     acc += s;
     rbuffer[wrpos++] = s;
@@ -44,14 +49,15 @@ int rfilter::inout(int x)
   if(r<0)rshift(rrange);
   if(r>rrange/2*3)rshift(-rrange);
 
-  if(r>=rrange)r-=rrange;
+  r = acc/(rdepth>>obits);
+  if(r>=(long)rrange<<obits)r-=(long)rrange<<obits;
 
   return r;
 }
 
 inline int rfilter::output(void)
 {
-  return acc/rdepth;
+  return acc/(rdepth>>obits);
 }
 
 void rfilter::rshift(int d)

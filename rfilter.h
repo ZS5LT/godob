@@ -3,7 +3,7 @@
 
 class rfilter{
  public:
-  rfilter(int depth, int range);
+  rfilter(int depth, int range, int obits);
   int inout(int x);
   int output(void);
 
@@ -15,6 +15,7 @@ class rfilter{
   long acc;
   void rshift(int d);
   int inst;
+  int obits;
   static int instx;
 };
 
