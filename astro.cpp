@@ -179,9 +179,9 @@ float Astro::latitude1(starpos_s &s1)
 float Astro::latitude2(starpos_s &s1, starpos_s &s2)
 {
   float cr,sr2;
-  float sq1,cq1,sq2,cq2,cq;
+  float sq1,cq1,sq2,cq2,cq,sq;
   float slat;
-  float h1;
+  float h1,sh,ch;
   float lst;
   float latx;
 
@@ -209,11 +209,17 @@ float Astro::latitude2(starpos_s &s1, starpos_s &s2)
 
   /* cos(A) = cos(2pi-A) */
   cq = (cq1*cq2 - sq1*sq2)/sr2; /* cos(A+B) = cosA.cosB - sinA.sinB */
+  sq = -(sq1*cq2 + cq1*sq2)/sr2; /* sin(A+B) = sinA.cosB + cosA.sinB */
 
   slat = sin(d1)*sin(a1) + cos(d1)*cos(a1)*cq;
 
   latx = asin(slat);
-  h1 = atan2(-sin(A1),-cos(A1)*sin(latx)+tan(a1)*cos(latx));
+
+  sh = -cos(a1)*sq; /* sine rule times cos(lat) */
+  ch = (sin(a1)-sin(d1)*slat)/cos(d1); /* cos rule times cos(lat) */
+  h1 = atan2(sh,ch); /* cos(lat)s cancel anyway */
+  
+  //h1 = atan2(-sin(A1),-cos(A1)*sin(latx)+tan(a1)*cos(latx));
   lst = ra1 + h1; /* update LST to the calculated time */
   LON = lst - s1.GMST;
   while(LON<0)LON+=2*M_PI;
